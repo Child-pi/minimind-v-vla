@@ -541,6 +541,10 @@ def main() -> None:
     parser.add_argument("--skip-wandb", action="store_true", default=False, help="跳过 WandB 日志记录")
     parser.add_argument("--wandb-project", type=str, default="MiniMind-V-TTT", help="WandB 项目名称")
     parser.add_argument("--wandb-run-name", type=str, default=None, help="WandB 运行名称")
+    parser.add_argument("--use_moe", action="store_true", default=False, help="是否启用MoE架构")
+    parser.add_argument("--num_experts_per_tok", type=int, default=2, help="每个token激活的专家数 (Top-K)")
+    parser.add_argument("--n_routed_experts", type=int, default=4, help="路由专家总数")
+    parser.add_argument("--n_shared_experts", type=int, default=1, help="共享专家数量")
     args = parser.parse_args()
 
     cfg = PPOConfig()
@@ -564,7 +568,15 @@ def main() -> None:
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
     cfg.pad_token_id = tokenizer.pad_token_id
-    config = VLMConfig(hidden_size=768, num_hidden_layers=16, max_seq_len=512, use_moe=False)
+    config = VLMConfig(
+        hidden_size=768,
+        num_hidden_layers=16,
+        max_seq_len=512,
+        use_moe=args.use_moe,
+        num_experts_per_tok=args.num_experts_per_tok,
+        n_routed_experts=args.n_routed_experts,
+        n_shared_experts=args.n_shared_experts,
+    )
     policy = PPOPolicy(config, vision_model_path=args.vision_model).to(device)
 
     cfg.max_seq_len = config.max_seq_len

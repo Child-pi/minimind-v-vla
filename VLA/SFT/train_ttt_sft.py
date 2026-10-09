@@ -147,11 +147,12 @@ def train_epoch(epoch, wandb, val_loader=None, early_stopping=None):
 
 def init_model(model_config: VLMConfig):
     tokenizer = AutoTokenizer.from_pretrained('model')
-    pre_ckp = CKPT_DEFAULT
+    pre_ckp = args.resume_from if (hasattr(args, 'resume_from') and args.resume_from) else CKPT_DEFAULT
 
     if not os.path.exists(pre_ckp):
-        raise FileNotFoundError(f"未找到固定预训练权重：{pre_ckp}，请确认路径。")
+        raise FileNotFoundError(f"未找到预训练或续训权重：{pre_ckp}，请确认路径。")
 
+    Logger(f"正在从权重加载模型: {pre_ckp}")
     model = MiniMindVLMWithAction(model_config, vision_model_path="model/vision_model/clip-vit-base-patch16")
     state_dict = torch.load(pre_ckp, map_location=args.device)
     # 严格匹配当前固定配置；允许缺少 vision_encoder.* 等视觉相关键（strict=False）
@@ -197,11 +198,23 @@ if __name__ == "__main__":
     parser.add_argument("--early_stop_window", type=int, default=20, help="早停滑动窗口大小")
     parser.add_argument("--early_stop_threshold", type=float, default=0.95, help="早停准确率阈值")
     parser.add_argument("--early_stop_patience", type=int, default=3, help="早停耐心值（连续满足阈值次数）")
+    parser.add_argument("--resume_from", type=str, default=None, help="继续训练的模型权重路径（默认使用基座模型）")
+    parser.add_argument("--use_moe", action="store_true", default=False, help="是否启用MoE架构")
+    parser.add_argument("--num_experts_per_tok", type=int, default=2, help="每个token激活的专家数 (Top-K)")
+    parser.add_argument("--n_routed_experts", type=int, default=4, help="路由专家总数")
+    parser.add_argument("--n_shared_experts", type=int, default=1, help="共享专家数量")
     parser.add_argument('--local_rank', type=int, default=-1)
     args = parser.parse_args()
 
-    model_config = VLMConfig(hidden_size=HIDDEN_SIZE, num_hidden_layers=NUM_LAYERS,
-                             max_seq_len=MAX_SEQ_LEN, use_moe=USE_MOE)
+    model_config = VLMConfig(
+        hidden_size=HIDDEN_SIZE,
+        num_hidden_layers=NUM_LAYERS,
+        max_seq_len=MAX_SEQ_LEN,
+        use_moe=args.use_moe,
+        num_experts_per_tok=args.num_experts_per_tok,
+        n_routed_experts=args.n_routed_experts,
+        n_shared_experts=args.n_shared_experts,
+    )
     max_seq_len = args.max_seq_len
     args.save_dir = os.path.join(args.out_dir)
     os.makedirs(args.save_dir, exist_ok=True)

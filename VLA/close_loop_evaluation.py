@@ -258,6 +258,7 @@ def main() -> None:
     parser.add_argument("--board-size", type=int, default=300)
     parser.add_argument("--agent-role", type=str, choices=["O", "X", "both"], default="both")
     parser.add_argument("--opponent", type=str, choices=["optimal", "hard", "medium", "random"], default="medium")
+    parser.add_argument("--use_moe", action="store_true", default=False, help="是否启用MoE架构")
     args = parser.parse_args()
 
     random.seed(args.seed)
@@ -266,12 +267,15 @@ def main() -> None:
 
     device = torch.device(args.device)
 
+    # 自动侦测权重文件名中是否带有 _moe
+    use_moe = args.use_moe or ("_moe" in args.model_path.lower())
+
     tokenizer = AutoTokenizer.from_pretrained('model', trust_remote_code=True)
     config = VLMConfig(
         hidden_size=HIDDEN_SIZE,
         num_hidden_layers=NUM_LAYERS,
         max_seq_len=MAX_SEQ_LEN,
-        use_moe=USE_MOE,
+        use_moe=use_moe,
     )
 
     model = MiniMindVLMWithAction(config, vision_model_path="model/vision_model/clip-vit-base-patch16")

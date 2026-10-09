@@ -36,8 +36,16 @@
 
 [报告](./VLA/VLA_FINETUNE_REPORT.md)
 <img width="977" height="676" alt="image" src="https://github.com/user-attachments/assets/5908a184-c77f-4b29-984b-a913581778e4" />
-<img width="1158" height="357" alt="image" src="https://github.com/user-attachments/assets/0ef16278-c4aa-4764-80f4-1b1d04c7e421" />
 <img width="1166" height="775" alt="image" src="https://github.com/user-attachments/assets/6669e7dd-f2e0-4313-9c6b-f3af5068aa4f" />
+
+## ⚡ Google Colab 一键训练 (支持 MoE / Dense)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Child-pi/minimind-v-vla/blob/VLA/minimind_v_vla_moe_colab.ipynb)
+
+本项目提供 Google Colab 一键运行 Notebook：[`minimind_v_vla_moe_colab.ipynb`](./minimind_v_vla_moe_colab.ipynb)
+- 🧠 **双架构支持**：原生支持 **MoE 混合专家 (1 共享专家 + 4 路由专家，Top-2 激活)** 与 **Dense 密集模型**。
+- 🔄 **断点续训与自我修复**：支持 Google Drive 权重自动打捞与续训，防范 Colab 实例重置。
+- 🛡️ **防断线后台守护**：采用 `nohup` 守护进程，关闭浏览器或分页不影响训练。
 
 ## 部署说明
 

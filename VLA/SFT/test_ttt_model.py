@@ -41,12 +41,13 @@ class TicTacToeTester:
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.model_path = model_path
         
-        # 初始化模型配置
+        # 初始化模型配置（根据模型文件名自动检测是否包含 _moe）
+        use_moe = USE_MOE or ("_moe" in model_path.lower())
         self.model_config = VLMConfig(
             hidden_size=HIDDEN_SIZE, 
             num_hidden_layers=NUM_LAYERS,
             max_seq_len=MAX_SEQ_LEN, 
-            use_moe=USE_MOE
+            use_moe=use_moe
         )
         
         # 加载模型和tokenizer
